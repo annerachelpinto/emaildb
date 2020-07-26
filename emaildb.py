@@ -1,28 +1,28 @@
-import sqlite3
+name = input("Enter file:")
+if len(name) < 1 : name = "mbox-short.txt"
+handle = open(name)
+lst = list()
+di = dict()
+for line in handle:
+    line = line.rstrip()
+    wds = line.split()
+    if len(wds) < 3 or wds[0] != 'From':
+        continue
+    w = wds[1]
+    add = lst.append(w)
 
-conn = sqlite3.connect('emaildb.sqlite')
-cur = conn.cursor()
 
-cur.execute('DROP TABLE IF EXISTS Counts')
 
-cur.execute('''
-CREATE TABLE Counts (org TEXT, count INTEGER)''')
-from urllib.request import urlopen
-from bs4 import BeautifulSoup
-import ssl
-
-# Ignore SSL certificate errors
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
-
-url = input('Enter - ')
-html = urlopen(url, context=ctx).read()
-soup = BeautifulSoup(html, "html.parser")
-
-# Retrieve all of the anchor tags
-total = 0
-tags = soup('span')
-for tag in tags:
-    total = total + int(tag.contents[0])
-print(total)
+for i in lst:    
+    if i in di:
+        di[i]=di[i] + 1
+    else:
+        di[i]=1
+        
+bc = None
+bw = None
+for k,v in di.items():
+    if bc is None or v > bc:
+        bw = k
+        bc = v
+print(bw, bc)
