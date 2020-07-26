@@ -7,30 +7,22 @@ cur.execute('DROP TABLE IF EXISTS Counts')
 
 cur.execute('''
 CREATE TABLE Counts (org TEXT, count INTEGER)''')
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+import ssl
 
-fname = input('Enter file name: ')
-if (len(fname) < 1): fname = 'mbox.txt'
-fh = open(fname)
-for line in fh:
-    if not line.startswith('From: '): continue
-    pieces = line.split()
-    email = pieces[1]
-    spl2=email.split('@')
-    domain=spl2[1]
-    cur.execute('SELECT count FROM Counts WHERE org=?', (domain,))
-    row =cur.fetchone()
-    if row is None:
-        cur.execute('''INSERT INTO Counts (org,count)
-               VALUES (?,1)''',(domain,))
-    else:
-        cur.execute('UPDATE Counts SET count=count+1 WHERE org =?', (domain,))
-    cur.execute('SELECT org,count FROM Counts ORDER BY count DESC')
-    conn.commit()
+# Ignore SSL certificate errors
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
 
-# https://www.sqlite.org/lang_select.html
-sqlstr = 'SELECT org,count FROM Counts ORDER BY count DESC'
+url = input('Enter - ')
+html = urlopen(url, context=ctx).read()
+soup = BeautifulSoup(html, "html.parser")
 
-for row in cur.execute(sqlstr):
-    print(str(row[0]), row[1])
-
-cur.close()
+# Retrieve all of the anchor tags
+total = 0
+tags = soup('span')
+for tag in tags:
+    total = total + int(tag.contents[0])
+print(total)
